@@ -23,3 +23,13 @@ class Normal(distribution):
 
     def get(self, size: int) -> list:
         return [random.normalvariate(self.mu, self.sigma) for value in range(size)]
+
+
+class Triangular(distribution):
+    def __init__(self, low: float, high: float, mode: float):
+        self.low = low
+        self.high = high
+        self.mode = mode
+
+    def get(self, size: int) -> list:
+        return [random.triangular(self.low, self.high, self.mode) for value in range(size)]

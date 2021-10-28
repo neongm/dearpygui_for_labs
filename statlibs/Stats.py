@@ -1,5 +1,7 @@
 from . import Distributions
+from . import KDECores
 import math
+
 
 class selection():
     values = []
@@ -45,26 +47,24 @@ class selection():
     def get_median(self):
         return sorted(self.values)[len(self.values)//2]
 
-    def g_core(self, x):
-        M_E = 2.71828182845904523536
-        M_PI = 3.14159265358979323846
-        part1 = 1 / math.pow(2*M_PI, 0.5)
-        part2 = pow(M_E, -1 * x**2 / 2)
-        return part1 * part2
+    # def g_core(self, x):
+    #     part1 = 1 / math.pow(2*M_PI, 0.5)
+    #     part2 = pow(M_E, -1 * x**2 / 2)
+    #     return part1 * part2
 
-    def kernel_density_estimation(self, x: float, window_width: float = 0.3, ):
+    def kernel_density_estimation(self, x: float, window_width: float = 0.3, core = KDECores.cores.GAUSS):
         kde_kernel_sum = 0
         for xi in self.values:
-            kde_kernel_sum += self.g_core((x - xi) / window_width)
+            kde_kernel_sum += core((x - xi) / window_width)
 
         return (1 / (self.size() * window_width)) * kde_kernel_sum
 
-    def get_estimated(self, window_width: float = 0.3, resolution: int = 1000):
+    def get_estimated(self, window_width: float = 0.3, resolution: int = 1000, core = KDECores.cores.GAUSS):
         _min = self.min()
         _max = self.max()
         step = (_max - _min)/resolution
         return [[_min+x*step for x in range(resolution)],
-                [self.kernel_density_estimation(x=_min+x*step, window_width = window_width) for x in range(resolution)]]
+                [self.kernel_density_estimation(x=_min+x*step, window_width = window_width, core = core) for x in range(resolution)]]
 
     def get_dispersion(self):
         avg = self.get_average()
