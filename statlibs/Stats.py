@@ -1,5 +1,5 @@
 from . import Distributions
-
+import math
 
 class selection():
     values = []
@@ -39,13 +39,36 @@ class selection():
         step = max_value/amount_of_slices
         return [self.get_values_in_range(slice*step, (slice+1)*step) for slice in range(amount_of_slices)]
 
-    def get_middle(self):
+    def get_average(self):
         return sum(self.values)/len(self.values)
 
     def get_median(self):
         return sorted(self.values)[len(self.values)//2]
 
+    def g_core(self, x):
+        M_E = 2.71828182845904523536
+        M_PI = 3.14159265358979323846
+        part1 = 1 / math.pow(2*M_PI, 0.5)
+        part2 = pow(M_E, -1 * x**2 / 2)
+        return part1 * part2
 
+    def kernel_density_estimation(self, x: float, window_width: float = 0.3, ):
+        kde_kernel_sum = 0
+        for xi in self.values:
+            kde_kernel_sum += self.g_core((x - xi) / window_width)
+
+        return (1 / (self.size() * window_width)) * kde_kernel_sum
+
+    def get_estimated(self, window_width: float = 0.3, resolution: int = 1000):
+        _min = self.min()
+        _max = self.max()
+        step = (_max - _min)/resolution
+        return [[_min+x*step for x in range(resolution)],
+                [self.kernel_density_estimation(x=_min+x*step, window_width = window_width) for x in range(resolution)]]
+
+    def get_dispersion(self):
+        avg = self.get_average()
+        return sum([(x-avg)**2 for x in self.values])/self.size()
 
 
     def get_values_in_range(self, lower_bound: int = None, upper_bound: int = None) -> list:
