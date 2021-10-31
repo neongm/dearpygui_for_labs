@@ -33,92 +33,101 @@ def generate_data():
                                                                 dpg.get_value('triangular_mode')), size=selection_size)
 
 
-def update_plot():
+def update():
     data = generate_data()
+    update_graphs(data)
+    update_results(data)
+
+def update_graphs(data):
     x = data.sorted()
     y = [data.elems_less_than(i) / data.size() for i in x][::-1]
+
     dpg.set_value('series_line', [x, y])
     dpg.set_value('series_stair', [x, y])
     dpg.configure_item('series_hist', max_range=data.max(), min_range=data.min(), bins=dpg.get_value("histogram_bars"))
     dpg.set_value('series_hist', [data.get_values()])
 
+    update_kde(data) # since it is the most demanding by far
+
+
+def update_results(data):
     dpg.set_value('average', round(data.get_average(), 4))
     dpg.set_value('median', round(data.get_median(), 4))
     dpg.set_value('dispersion', round(data.get_dispersion(), 4))
 
+
+def update_kde(data):
     if dpg.get_value("combo_kde") == "GAUSS":
-        dpg.set_value('KDE', data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.GAUSS))
+        dpg.set_value('kde_graph', data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.GAUSS))
     if dpg.get_value("combo_kde") == "ECHPOCHMAK":
-        dpg.set_value('KDE', data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.ECHPOCHMAK))
+        dpg.set_value('kde_graph', data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.ECHPOCHMAK))
     if dpg.get_value("combo_kde") == "KOSHI":
-        dpg.set_value('KDE', data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.KOSHI))
+        dpg.set_value('kde_graph', data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.KOSHI))
     if dpg.get_value("combo_kde") == "EMPTY":
-        dpg.set_value('KDE', data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.EMPTY))
+        dpg.set_value('kde_graph', data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.EMPTY))
     if dpg.get_value("combo_kde") == "LOG":
-        dpg.set_value('KDE', data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.LOG))
+        dpg.set_value('kde_graph', data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.LOG))
 
 
 
 with dpg.window(label="plot test", tag="Primary Window", height=650, width=1250):
-    with dpg.group(horizontal=True):
+    ELEM_WIDTH = 200 # width of controls like buttons, inputs, etc.
 
+
+    with dpg.group(horizontal=True): # MAIN LAYOUT GROUP
+
+        # LEFT SIDE OF THE WINDOW
         with dpg.group():
-            with dpg.plot(label="plot", height=300, width=900):
-                # optionally create legend
-                dpg.add_plot_legend()
 
-                # REQUIRED: create x and y axes
-                dpg.add_plot_axis(dpg.mvXAxis, label="x")
-                dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="y_axis")
-
+            with dpg.plot(label="plot", height=300, width=900): # MAIN PLOT
+                dpg.add_plot_legend() # create legend
+                dpg.add_plot_axis(dpg.mvXAxis, label="x") # REQUIRED: create x axis
+                dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="y_axis") # REQUIRED: create y axis
+                # Drawing stuff (empty for now):
                 dpg.add_histogram_series([], label="Histogram", parent="y_axis", tag="series_hist", bins=10,
                                          density=True, bar_scale=0.95)
+                dpg.add_line_series([], [], label="Kernel Density Estimation", parent="y_axis", tag="kde_graph")
 
-                dpg.add_line_series([], [], label="Kernel Density Estimation", parent="y_axis", tag="KDE")
-
-            with dpg.plot(label="plot", height=300, width=900):
-                # optionally create legend
-                dpg.add_plot_legend()
-
-                # REQUIRED: create x and y axes
-                dpg.add_plot_axis(dpg.mvXAxis, label="x")
-                dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="y_axis_2")
-
+            with dpg.plot(label="plot", height=300, width=900): # SECONDARY PLOT
+                dpg.add_plot_legend()  # create legend
+                dpg.add_plot_axis(dpg.mvXAxis, label="x") # REQUIRED: create x axis
+                dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="y_axis_2") # REQUIRED: create y axis
+                # Drawing stuff (empty for now):
                 dpg.add_stair_series([], [], label="Emepric Fucntion", parent="y_axis_2", tag="series_stair")
                 dpg.add_line_series([], [], label="Polygon Something", parent="y_axis_2", tag="series_line")
 
-
+        # RIGHT SIDE OF THE WINDOW
         with dpg.group():
-            with dpg.group():
-
-                dpg.add_text('distribution controls: ') # DISTRIBUTION CONTROLS
-
-                dpg.add_combo(['NORMAL', 'UNIFORM', 'TRIANGULAR'], label="distribution", tag="combo_dist", width=200, default_value="NORMAL", callback=update_ui)
+            with dpg.group(): # DISTRIBUTION CONTROLS
+                dpg.add_text('distribution controls: ')
+                dpg.add_combo(['NORMAL', 'UNIFORM', 'TRIANGULAR'], label="distribution", tag="combo_dist", width=ELEM_WIDTH, default_value="NORMAL", callback=update_ui)
                 with dpg.group(tag="dist_controls"):
                     with dpg.group(tag="controls_normal"):
-                        dpg.add_input_float(width=200, label="mu", tag="normal_mu", default_value=0)
-                        dpg.add_input_float(width=200, label="sigma", tag="normal_sigma", default_value=1)
+                        dpg.add_input_float(width=ELEM_WIDTH, label="mu", tag="normal_mu", default_value=0)
+                        dpg.add_input_float(width=ELEM_WIDTH, label="sigma", tag="normal_sigma", default_value=1)
                     with dpg.group(tag="controls_uniform"):
-                        dpg.add_input_float(width=200, label="min", tag="uniform_min", default_value=-5)
-                        dpg.add_input_float(width=200, label="max", tag="uniform_max", default_value=5)
+                        dpg.add_input_float(width=ELEM_WIDTH, label="min", tag="uniform_min", default_value=-5)
+                        dpg.add_input_float(width=ELEM_WIDTH, label="max", tag="uniform_max", default_value=5)
                     with dpg.group(tag="controls_triangular"):
-                        dpg.add_input_float(width=200, label="low", tag="triangular_low", default_value=-5)
-                        dpg.add_input_float(width=200, label="high", tag="triangular_high", default_value=5)
-                        dpg.add_input_float(width=200, label="mode", tag="triangular_mode", default_value=0)
-                update_ui()
+                        dpg.add_input_float(width=ELEM_WIDTH, label="low", tag="triangular_low", default_value=-5)
+                        dpg.add_input_float(width=ELEM_WIDTH, label="high", tag="triangular_high", default_value=5)
+                        dpg.add_input_float(width=ELEM_WIDTH, label="mode", tag="triangular_mode", default_value=0)
+                    update_ui()
 
-                dpg.add_spacer(height=10) # SELECTION CONTROLS
+                dpg.add_spacer(height=10)
 
-                dpg.add_text('selection controls: ')
-                dpg.add_input_int(tag="selection_size", label="selection size", width=200, default_value=100)
-                dpg.add_input_int(tag="histogram_bars", label="histogram bars", width=200, default_value=20)
-                dpg.add_combo(['GAUSS', 'ECHPOCHMAK', 'KOSHI', 'EMPTY', 'LOG'], label="kde core", tag="combo_kde", width=200,
-                              default_value='GAUSS')
-                dpg.add_input_float(tag="kde_width", label="KDE window width", default_value=0.2, width=200, step=0.05)
+                with dpg.group(tag="selection_controls"): # SELECTION CONTROLS
+                    dpg.add_text('selection controls: ')
+                    dpg.add_input_int(tag="selection_size", label="selection size", width=ELEM_WIDTH, default_value=100, step=50, min_clamped=True, min_value=10)
+                    dpg.add_input_int(tag="histogram_bars", label="histogram bars", width=ELEM_WIDTH, default_value=20, min_clamped=True, min_value=3)
+                    dpg.add_combo(['GAUSS', 'ECHPOCHMAK', 'KOSHI', 'EMPTY', 'LOG'], label="kde core", tag="combo_kde", width=ELEM_WIDTH,
+                                  default_value='GAUSS')
+                    dpg.add_input_float(label="kde window width", tag="kde_width", default_value=0.2, width=ELEM_WIDTH, step=0.05, min_clamped=True, min_value=0.01)
 
-            with dpg.group():
-                dpg.add_button(tag="btn_draw", small=False, label="draw", callback=update_plot, height=50, width=200)
-            with dpg.group():
+            with dpg.group(): # DRAW BUTTON
+                dpg.add_button(label="draw", tag="btn_draw", small=False, callback=update, height=50, width=ELEM_WIDTH)
+
+            with dpg.group(): # RESULTS GROUP
                 with dpg.group(horizontal=True):
                     dpg.add_text(default_value="average: ")
                     dpg.add_text(tag="average", default_value='-')
