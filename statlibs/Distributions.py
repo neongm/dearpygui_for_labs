@@ -54,20 +54,52 @@ class Triangular(distribution):
         # you know the rule for code that works
         # yep, don't ever touch it
 
-        at_c = 2/(self.high - self.low)
-        if x < self.mode:
-            OP = at_c
-            JP = self.mode - self.low
-            J_tang = math.tan(OP/JP)
-            JX = x-self.low
-            return JX*J_tang
-        elif x > self.mode:
-            OP = at_c
-            PA = self.high - self.mode
-            J_tang = math.tan(OP / PA)
-            AX =  self.high - x
-            return AX * J_tang
-        elif x== self.mode: return at_c
+        # original:
+
+        # at_c = 2/(self.high - self.low)
+        # if x < self.mode:
+        #     OP = at_c
+        #     JP = self.mode - self.low
+        #     J_tang = math.tan(OP/JP)
+        #     JX = x-self.low
+        #     return JX * J_tang
+        # elif x > self.mode:
+        #     OP = at_c
+        #     PA = self.high - self.mode
+        #     J_tang = math.tan(OP / PA)
+        #     AX = self.high - x
+        #     return AX * J_tang
+        # elif x == self.mode: return at_c
+
+
+        # but i will touch it:
+        if x != self.mode:
+            if x < self.mode:
+                divider = self.mode - self.low
+                multiplier = x - self.low
+            else:
+                divider = self.high - self.mode
+                multiplier = self.high - x
+            return (multiplier * math.tan(2/(self.high - self.low) / divider))
+        else:
+            return 2/(self.high - self.low)
+
+
+
+        # there is the solution from my good friend ITR
+        # but it doesn't work as intended
+        # at_c = 2 / (self.high - self.low)
+        # if x == self.mode: return at_c
+        #
+        # left_add = -1
+        # right_add = - self.low
+        # if x > self.mode:
+        #     left_add = 1
+        #     right_add = self.high
+        #
+        # divide_on = self.mode * left_add + right_add
+        # mult_by = x * left_add + right_add
+        # return math.tan(at_c / divide_on) * mult_by
 
 
 

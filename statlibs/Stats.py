@@ -65,11 +65,6 @@ class selection():
     def get_median(self):
         return sorted(self.values)[len(self.values)//2]
 
-    # def g_core(self, x):
-    #     part1 = 1 / math.pow(2*M_PI, 0.5)
-    #     part2 = pow(M_E, -1 * x**2 / 2)
-    #     return part1 * part2
-
     def kernel_density_estimation(self, x: float, window_width: float = 0.3, core = KDECores.cores.GAUSS):
         kde_kernel_sum = 0
         for xi in self.values:
@@ -87,7 +82,6 @@ class selection():
     def get_dispersion(self):
         avg = self.get_average()
         return sum([(x-avg)**2 for x in self.values])/self.size()
-
 
     def get_values_in_range(self, lower_bound: int = None, upper_bound: int = None) -> list:
         if lower_bound is not None and upper_bound is not None:
@@ -107,7 +101,7 @@ class selection():
     def size(self): return len(self.values)
 
     def __str__(self):
-        return f"original values: {str(self.values)}\nnormalized values: {str(self.values_normalised)}"
+        return f"selection: {str(self.values)}"
 
     def __repr__(self): return self.values
 
