@@ -10,13 +10,13 @@ class selection():
     lower_bound = None
     upper_bound = None
 
-    def __init__(self, distrib:Distributions.distribution, size: int = None, values: list = None):
+    def __init__(self, distrib: Distributions.distribution, size: int = None, values: list = None):
         if values is not None: self.values = values
         self.distrib = distrib
         if size is not None: self._fill_values(size)
 
-    def _fill_values(self, size:int):
-        self.values = self.distrib.get(size)
+    def _fill_values(self, size: int):
+        self.values = self.distrib.get_array(size=size)
 
     def _update_bounds(self):
         self.lower_bound = min(self.values)

@@ -5,9 +5,11 @@ M_PI = 3.14159265358979323846
 
 class distribution():
     # return array of distributed floats
-    # -> probably should rework the entire class towards single values
-    def get(self, size: int) -> list: pass
-
+    # -> reworking it to be consistent across the methods
+    # by separating single-value and array getters
+    def get(self) -> float: pass
+    def get_array(self, size: int) -> list: # also it will work without any additional code
+        return [self.get() for i in range(size)]
     # returns SINGLE(!!!) Y values that corresponds to given X
     def get_true(self, x: int) -> float: pass
 
@@ -17,8 +19,8 @@ class Uniform(distribution):
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
 
-    def get(self, size: int) -> list:
-        return [random.uniform(self.lower_bound, self.upper_bound) for value in range(size)]
+    def get(self) -> float:
+        return random.uniform(self.lower_bound, self.upper_bound)
 
     def get_true(self, x: int) -> float:
         return 1/(self.upper_bound - self.lower_bound)
@@ -29,8 +31,8 @@ class Normal(distribution):
         self.mu = mu
         self.sigma = sigma
 
-    def get(self, size: int) -> list:
-        return [random.normalvariate(self.mu, self.sigma) for value in range(size)]
+    def get(self) -> float:
+        return random.normalvariate(self.mu, self.sigma)
 
     def get_true(self, x: float) -> float:
         return 1 / (self.sigma * math.sqrt(2*M_PI))*pow(M_E, -0.5*pow((x-self.mu)/self.sigma, 2))
@@ -42,8 +44,8 @@ class Triangular(distribution):
         self.high = high
         self.mode = mode
 
-    def get(self, size: int) -> list:
-        return [random.triangular(self.low, self.high, self.mode) for value in range(size)]
+    def get(self) -> float:
+        return random.triangular(self.low, self.high, self.mode)
 
     def get_true(self, x: float) -> float:
         # i have to think it by myself, there is not simple "copy-paste" solution on wiki
