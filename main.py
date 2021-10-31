@@ -18,61 +18,77 @@ def update_ui():
     dpg.show_item(groups[dpg.get_value("combo_dist")])
 
 
-def generate_data():
-    selection_size = dpg.get_value('selection_size')
+class Updater():
+    def __init__(self):
+        self.data = None
 
-    if dpg.get_value('combo_dist') == 'NORMAL':
-        return Stats.selection(distrib=Distributions.Normal(dpg.get_value("normal_mu"),
-                                                            dpg.get_value("normal_sigma")), size=selection_size)
-    elif dpg.get_value('combo_dist') == 'UNIFORM':
-        return Stats.selection(distrib=Distributions.Uniform(dpg.get_value("uniform_min"),
-                                                             dpg.get_value("uniform_max")), size=selection_size)
-    elif dpg.get_value('combo_dist') == "TRIANGULAR":
-        return Stats.selection(distrib=Distributions.Triangular(dpg.get_value("triangular_low"),
-                                                                dpg.get_value("triangular_high"),
-                                                                dpg.get_value('triangular_mode')), size=selection_size)
+    def generate_data(self):
+        selection_size = dpg.get_value('selection_size')
+        if dpg.get_value('combo_dist') == 'NORMAL':
+            self.data = Stats.selection(distrib=Distributions.Normal(dpg.get_value("normal_mu"),
+                                                                dpg.get_value("normal_sigma")), size=selection_size)
+        elif dpg.get_value('combo_dist') == 'UNIFORM':
+            self.data = Stats.selection(distrib=Distributions.Uniform(dpg.get_value("uniform_min"),
+                                                                 dpg.get_value("uniform_max")), size=selection_size)
+        elif dpg.get_value('combo_dist') == "TRIANGULAR":
+            self.data =  Stats.selection(distrib=Distributions.Triangular(dpg.get_value("triangular_low"),
+                                                                    dpg.get_value("triangular_high"),
+                                                                    dpg.get_value('triangular_mode')), size=selection_size)
 
+    def update(self):
+        self.generate_data()
+        self.update_graphs()
+        self.update_results()
 
-def update():
-    data = generate_data()
-    update_graphs(data)
-    update_results(data)
-
-def update_graphs(data):
-    x = data.sorted()
-    y = [data.elems_less_than(i) / data.size() for i in x][::-1]
-
-    dpg.set_value('series_line', [x, y])
-    dpg.set_value('series_stair', [x, y])
-    dpg.configure_item('series_hist', max_range=data.max(), min_range=data.min(), bins=dpg.get_value("histogram_bars"))
-    dpg.set_value('series_hist', [data.get_values()])
-
-    update_kde(data) # since it is the most demanding by far
-
-
-def update_results(data):
-    dpg.set_value('average', round(data.get_average(), 4))
-    dpg.set_value('median', round(data.get_median(), 4))
-    dpg.set_value('dispersion', round(data.get_dispersion(), 4))
+    def update_graphs(self):
+        # getting values from series to draw graphs from
+        self.x = self.data.sorted()
+        self.y = [self.data.elems_less_than(i) / self.data.size() for i in self.x][::-1]
+        # drawing all the series
+        self.update_kde()
+        self.update_line_series()
+        self.update_stair_series()
+        self.update_hist_series()
 
 
-def update_kde(data):
-    if dpg.get_value("combo_kde") == "GAUSS":
-        dpg.set_value('kde_graph', data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.GAUSS))
-    if dpg.get_value("combo_kde") == "ECHPOCHMAK":
-        dpg.set_value('kde_graph', data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.ECHPOCHMAK))
-    if dpg.get_value("combo_kde") == "KOSHI":
-        dpg.set_value('kde_graph', data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.KOSHI))
-    if dpg.get_value("combo_kde") == "EMPTY":
-        dpg.set_value('kde_graph', data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.EMPTY))
-    if dpg.get_value("combo_kde") == "LOG":
-        dpg.set_value('kde_graph', data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.LOG))
+    def update_line_series(self):
+        dpg.set_value('series_line', [self.x, self.y])
+
+    def update_stair_series(self):
+        dpg.set_value('series_stair', [self.x, self.y])
+
+    def update_hist_series(self):
+        self.update_hist_series_config()
+        dpg.set_value('series_hist', [self.data.get_values()])
+
+    def update_hist_series_config(self):
+        dpg.configure_item('series_hist', max_range=self.data.max(), min_range=self.data.min(), bins=dpg.get_value("histogram_bars"))
+
+
+    def update_kde(self):
+        if dpg.get_value("combo_kde") == "GAUSS":
+            dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.GAUSS))
+        if dpg.get_value("combo_kde") == "ECHPOCHMAK":
+            dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.ECHPOCHMAK))
+        if dpg.get_value("combo_kde") == "KOSHI":
+            dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.KOSHI))
+        if dpg.get_value("combo_kde") == "EMPTY":
+            dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.EMPTY))
+        if dpg.get_value("combo_kde") == "LOG":
+            dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.LOG))
+
+
+    def update_results(self):
+        dpg.set_value('average', round(self.data.get_average(), 4))
+        dpg.set_value('median', round(self.data.get_median(), 4))
+        dpg.set_value('dispersion', round(self.data.get_dispersion(), 4))
+
 
 
 
 with dpg.window(label="plot test", tag="Primary Window", height=650, width=1250):
     ELEM_WIDTH = 200 # width of controls like buttons, inputs, etc.
-
+    upd = Updater()
 
     with dpg.group(horizontal=True): # MAIN LAYOUT GROUP
 
@@ -119,13 +135,15 @@ with dpg.window(label="plot test", tag="Primary Window", height=650, width=1250)
                 with dpg.group(tag="selection_controls"): # SELECTION CONTROLS
                     dpg.add_text('selection controls: ')
                     dpg.add_input_int(tag="selection_size", label="selection size", width=ELEM_WIDTH, default_value=100, step=50, min_clamped=True, min_value=10)
-                    dpg.add_input_int(tag="histogram_bars", label="histogram bars", width=ELEM_WIDTH, default_value=20, min_clamped=True, min_value=3)
+                    dpg.add_input_int(tag="histogram_bars", label="histogram bars", width=ELEM_WIDTH, default_value=20, min_clamped=True,
+                                      min_value=3, callback=upd.update_hist_series_config)
                     dpg.add_combo(['GAUSS', 'ECHPOCHMAK', 'KOSHI', 'EMPTY', 'LOG'], label="kde core", tag="combo_kde", width=ELEM_WIDTH,
-                                  default_value='GAUSS')
-                    dpg.add_input_float(label="kde window width", tag="kde_width", default_value=0.2, width=ELEM_WIDTH, step=0.05, min_clamped=True, min_value=0.01)
+                                  default_value='GAUSS', callback=upd.update_kde)
+                    dpg.add_input_float(label="kde window width", tag="kde_width", default_value=0.2, width=ELEM_WIDTH, step=0.05,
+                                        min_clamped=True, min_value=0.01, callback=upd.update_kde)
 
             with dpg.group(): # DRAW BUTTON
-                dpg.add_button(label="draw", tag="btn_draw", small=False, callback=update, height=50, width=ELEM_WIDTH)
+                dpg.add_button(label="draw", tag="btn_draw", small=False, callback=upd.update, height=50, width=ELEM_WIDTH)
 
             with dpg.group(): # RESULTS GROUP
                 with dpg.group(horizontal=True):
