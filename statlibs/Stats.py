@@ -28,6 +28,24 @@ class selection():
     def get_propagation(self):
         return [self.elems_less_than(i) / self.size() for i in self.sorted()][::-1]
 
+    def get_real_density_xy(self, resolution: int = 200):
+
+        x = self.get_range(resolution=resolution)
+        y = self.get_real_density(resolution=resolution)
+        return [x, y]
+
+    def get_real_density(self, resolution: int = 200):
+        max = self.max()
+        min = self.min()
+        step = max-min/resolution
+        return [self.distrib.get_true(x) for x in self.get_range(resolution=resolution)]
+
+    def get_range(self, resolution: int = 200):
+        max = self.max()
+        min = self.min()
+        step = (max - min) / resolution
+        return [min + (i * step) for i in range(resolution)]
+
     def normalize(self):
         max_value = max(self.values)
         self.values_normalised = [value/max_value for value in self.values]

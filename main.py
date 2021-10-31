@@ -49,7 +49,10 @@ class Updater():
         self.update_line_series()
         self.update_stair_series()
         self.update_hist_series()
+        self.update_real_density_series()
 
+    def update_real_density_series(self):
+        dpg.set_value('series_real_density', self.data.get_real_density_xy(resolution=1000))
 
     def update_line_series(self):
         dpg.set_value('series_line', [self.x, self.y])
@@ -84,8 +87,6 @@ class Updater():
         dpg.set_value('dispersion', round(self.data.get_dispersion(), 4))
 
 
-
-
 with dpg.window(label="plot test", tag="Primary Window", height=650, width=1250):
     ELEM_WIDTH = 200 # width of controls like buttons, inputs, etc.
     upd = Updater()
@@ -103,6 +104,7 @@ with dpg.window(label="plot test", tag="Primary Window", height=650, width=1250)
                 dpg.add_histogram_series([], label="Histogram", parent="y_axis", tag="series_hist", bins=10,
                                          density=True, bar_scale=0.95)
                 dpg.add_line_series([], [], label="Kernel Density Estimation", parent="y_axis", tag="kde_graph")
+                dpg.add_line_series([], [], label="Real Density", parent="y_axis", tag="series_real_density")
 
             with dpg.plot(label="plot", height=300, width=900): # SECONDARY PLOT
                 dpg.add_plot_legend()  # create legend
