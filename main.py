@@ -6,6 +6,7 @@ dpg.create_context()
 dpg.create_viewport()
 dpg.setup_dearpygui()
 dpg.show_debug()
+dpg.show_style_editor()
 
 
 def update_ui():
@@ -16,7 +17,6 @@ def update_ui():
     }
     for item in [*groups.values()]: dpg.hide_item(item)
     dpg.show_item(groups[dpg.get_value("combo_dist")])
-
 
 class Updater():
     def __init__(self):
@@ -31,7 +31,7 @@ class Updater():
             self.data = Stats.selection(distrib=Distributions.Uniform(dpg.get_value("uniform_min"),
                                                                  dpg.get_value("uniform_max")), size=selection_size)
         elif dpg.get_value('combo_dist') == "TRIANGULAR":
-            self.data =  Stats.selection(distrib=Distributions.Triangular(dpg.get_value("triangular_low"),
+            self.data = Stats.selection(distrib=Distributions.Triangular(dpg.get_value("triangular_low"),
                                                                     dpg.get_value("triangular_high"),
                                                                     dpg.get_value('triangular_mode')), size=selection_size)
 
@@ -67,7 +67,6 @@ class Updater():
     def update_hist_series_config(self):
         dpg.configure_item('series_hist', max_range=self.data.max(), min_range=self.data.min(), bins=dpg.get_value("histogram_bars"))
 
-
     def update_kde(self):
         if dpg.get_value("combo_kde") == "GAUSS":
             dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.GAUSS))
@@ -79,7 +78,6 @@ class Updater():
             dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.EMPTY))
         if dpg.get_value("combo_kde") == "LOG":
             dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.LOG))
-
 
     def update_results(self):
         dpg.set_value('average', round(self.data.get_average(), 4))
@@ -94,9 +92,9 @@ with dpg.window(label="plot test", tag="Primary Window", height=650, width=1250)
     with dpg.group(horizontal=True): # MAIN LAYOUT GROUP
 
         # LEFT SIDE OF THE WINDOW
-        with dpg.group():
+        with dpg.group(tag="plots"):
 
-            with dpg.plot(label="plot", height=300, width=900): # MAIN PLOT
+            with dpg.plot(tag="plot_hist", label="plot", height=300, width=900): # MAIN PLOT
                 dpg.add_plot_legend() # create legend
                 dpg.add_plot_axis(dpg.mvXAxis, label="x") # REQUIRED: create x axis
                 dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="y_axis") # REQUIRED: create y axis
@@ -105,6 +103,7 @@ with dpg.window(label="plot test", tag="Primary Window", height=650, width=1250)
                                          density=True, bar_scale=0.95)
                 dpg.add_line_series([], [], label="Kernel Density Estimation", parent="y_axis", tag="kde_graph")
                 dpg.add_line_series([], [], label="Real Density", parent="y_axis", tag="series_real_density")
+                #print(mvPlotStyleVar_LineWeight=2)
 
             with dpg.plot(label="plot", height=300, width=900): # SECONDARY PLOT
                 dpg.add_plot_legend()  # create legend
@@ -158,7 +157,12 @@ with dpg.window(label="plot test", tag="Primary Window", height=650, width=1250)
                     dpg.add_text(default_value="dispersion: ")
                     dpg.add_text(tag="dispersion", default_value='-')
 
+with dpg.theme() as global_theme:
+    with dpg.theme_component(dpg.mvAll):
+        dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 2, category=dpg.mvThemeCat_Plots)
 
+
+dpg.bind_item_theme('plots', global_theme)
 
 dpg.show_viewport(maximized=True)
 dpg.start_dearpygui()

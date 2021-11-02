@@ -73,16 +73,34 @@ class Triangular(distribution):
 
 
         # but i will touch it:
-        if x != self.mode:
-            if x < self.mode:
-                divider = self.mode - self.low
-                multiplier = x - self.low
-            else:
-                divider = self.high - self.mode
-                multiplier = self.high - x
-            return (multiplier * math.tan(2/(self.high - self.low) / divider))
-        else:
-            return 2/(self.high - self.low)
+
+        # if x != self.mode:
+        #     if x < self.mode:
+        #         divider = self.mode - self.low
+        #         multiplier = x - self.low
+        #     else:
+        #         divider = self.high - self.mode
+        #         multiplier = self.high - x
+        #     return (multiplier * math.tan(2/(self.high - self.low) / divider))
+        # else:
+        #     return 2/(self.high - self.low)
+
+
+        # and then i came up with this just for LOLs
+        #prob_at_mode = 2 / (self.high - self.low)
+        # return ((x - self.low) * (x < self.mode) + (self.high - x) * (x > self.mode)) * \
+        #        (math.tan(prob_at_mode / ((self.mode - self.low))) * (x < self.mode) +
+        #         math.tan(prob_at_mode / ((self.high - self.mode))) * (x > self.mode)) + \
+        #        (prob_at_mode) * (x == self.mode)
+        # yeah, ik, it doesn't accout for the cases where x<self.low and x>self.high, but it is fun
+
+
+        # i'll fix it there:
+        # it is probably final version of the code
+        if x < self.mode: return (x - self.low) * math.tan(2 / (self.high - self.low) / (self.mode - self.low))
+        elif x > self.mode: return (self.high - x) * math.tan(2/(self.high - self.low) / (self.high - self.mode))
+        elif x < self.low or x > self.high: return 0.0
+        elif x == self.mode: return 2/(self.high - self.low)
 
 
 
