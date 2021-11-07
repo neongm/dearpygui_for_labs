@@ -10,13 +10,16 @@ class selection():
     lower_bound = None
     upper_bound = None
 
-    def __init__(self, distrib: Distributions.distribution, size: int = None, values: list = None):
+    def __init__(self, distrib: Distributions.distribution = None, size: int = None, values: list = None):
         if values is not None: self.values = values
         self.distrib = distrib
         if size is not None: self._fill_values(size)
 
     def _fill_values(self, size: int):
         self.values = self.distrib.get_array(size=size)
+
+    def append(self, value):
+        self.values.append(value)
 
     def _update_bounds(self):
         self.lower_bound = min(self.values)
@@ -100,6 +103,9 @@ class selection():
 
     def size(self): return len(self.values)
 
+    def get_sum(self):
+        return sum(self.values)
+
     def __str__(self):
         return f"selection: {str(self.values)}"
 
@@ -112,6 +118,24 @@ class selection():
 
     def __iter__(self):
         return self.values.__iter__()
+
+    def __mul__(self, other):
+        if type(other) in [float, int]:
+            return selection(distrib=self.distrib, values=[value * other for value in self.values])
+        else:
+            if self.size() != other.size():
+                raise ValueError(f'Selections have different length: {self.size()} and {other.size()};')
+            else:
+                return selection(distrib=self.distrib, values=[self.values[i] * other.values[i] for i in range(self.size())])
+
+    def __add__(self, other):
+        if type(other) in [float, int]:
+            return selection(distrib=self.distrib, values=[value + other for value in self.values])
+        else:
+            if self.size() != other.size():
+                raise ValueError(f'Selections have different length: {self.size()} and {other.size()};')
+            else:
+                return selection(distrib=self.distrib, values=[self.values[i] + other.values[i] for i in range(self.size())])
 
     def get_values(self): return self.values
 

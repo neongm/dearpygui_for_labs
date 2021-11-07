@@ -18,6 +18,7 @@ def update_ui():
     for item in [*groups.values()]: dpg.hide_item(item)
     dpg.show_item(groups[dpg.get_value("combo_dist")])
 
+
 class Updater():
     def __init__(self):
         self.data = None
@@ -26,14 +27,17 @@ class Updater():
         selection_size = dpg.get_value('selection_size')
         if dpg.get_value('combo_dist') == 'NORMAL':
             self.data = Stats.selection(distrib=Distributions.Normal(dpg.get_value("normal_mu"),
-                                                                dpg.get_value("normal_sigma")), size=selection_size)
+                                                                     dpg.get_value("normal_sigma")),
+                                        size=selection_size)
         elif dpg.get_value('combo_dist') == 'UNIFORM':
             self.data = Stats.selection(distrib=Distributions.Uniform(dpg.get_value("uniform_min"),
-                                                                 dpg.get_value("uniform_max")), size=selection_size)
+                                                                      dpg.get_value("uniform_max")),
+                                        size=selection_size)
         elif dpg.get_value('combo_dist') == "TRIANGULAR":
             self.data = Stats.selection(distrib=Distributions.Triangular(dpg.get_value("triangular_low"),
-                                                                    dpg.get_value("triangular_high"),
-                                                                    dpg.get_value('triangular_mode')), size=selection_size)
+                                                                         dpg.get_value("triangular_high"),
+                                                                         dpg.get_value('triangular_mode')),
+                                        size=selection_size)
 
     def update(self):
         self.generate_data()
@@ -65,19 +69,25 @@ class Updater():
         dpg.set_value('series_hist', [self.data.get_values()])
 
     def update_hist_series_config(self):
-        dpg.configure_item('series_hist', max_range=self.data.max(), min_range=self.data.min(), bins=dpg.get_value("histogram_bars"))
+        dpg.configure_item('series_hist', max_range=self.data.max(), min_range=self.data.min(),
+                           bins=dpg.get_value("histogram_bars"))
 
     def update_kde(self):
         if dpg.get_value("combo_kde") == "GAUSS":
-            dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.GAUSS))
+            dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200,
+                                                               core=KDECores.cores.GAUSS))
         if dpg.get_value("combo_kde") == "ECHPOCHMAK":
-            dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.ECHPOCHMAK))
+            dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200,
+                                                               core=KDECores.cores.ECHPOCHMAK))
         if dpg.get_value("combo_kde") == "KOSHI":
-            dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.KOSHI))
+            dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200,
+                                                               core=KDECores.cores.KOSHI))
         if dpg.get_value("combo_kde") == "EMPTY":
-            dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.EMPTY))
+            dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200,
+                                                               core=KDECores.cores.EMPTY))
         if dpg.get_value("combo_kde") == "LOG":
-            dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200, core = KDECores.cores.LOG))
+            dpg.set_value('kde_graph', self.data.get_estimated(window_width=dpg.get_value("kde_width"), resolution=200,
+                                                               core=KDECores.cores.LOG))
 
     def update_results(self):
         dpg.set_value('average', round(self.data.get_average(), 4))
@@ -86,38 +96,38 @@ class Updater():
 
 
 with dpg.window(label="plot test", tag="Primary Window", height=650, width=1250):
-    ELEM_WIDTH = 200 # width of controls like buttons, inputs, etc.
+    ELEM_WIDTH = 200  # width of controls like buttons, inputs, etc.
     upd = Updater()
 
-    with dpg.group(horizontal=True): # MAIN LAYOUT GROUP
+    with dpg.group(horizontal=True):  # MAIN LAYOUT GROUP
 
         # LEFT SIDE OF THE WINDOW
         with dpg.group(tag="plots"):
-
-            with dpg.plot(tag="plot_hist", label="plot", height=300, width=900): # MAIN PLOT
-                dpg.add_plot_legend() # create legend
-                dpg.add_plot_axis(dpg.mvXAxis, label="x") # REQUIRED: create x axis
-                dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="y_axis") # REQUIRED: create y axis
+            with dpg.plot(tag="plot_hist", label="plot", height=300, width=900):  # MAIN PLOT
+                dpg.add_plot_legend()  # create legend
+                dpg.add_plot_axis(dpg.mvXAxis, label="x")  # REQUIRED: create x axis
+                dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="y_axis")  # REQUIRED: create y axis
                 # Drawing stuff (empty for now):
                 dpg.add_histogram_series([], label="Histogram", parent="y_axis", tag="series_hist", bins=10,
                                          density=True, bar_scale=0.95)
                 dpg.add_line_series([], [], label="Kernel Density Estimation", parent="y_axis", tag="kde_graph")
                 dpg.add_line_series([], [], label="Real Density", parent="y_axis", tag="series_real_density")
-                #print(mvPlotStyleVar_LineWeight=2)
+                # print(mvPlotStyleVar_LineWeight=2)
 
-            with dpg.plot(label="plot", height=300, width=900): # SECONDARY PLOT
+            with dpg.plot(label="plot", height=300, width=900):  # SECONDARY PLOT
                 dpg.add_plot_legend()  # create legend
-                dpg.add_plot_axis(dpg.mvXAxis, label="x") # REQUIRED: create x axis
-                dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="y_axis_2") # REQUIRED: create y axis
+                dpg.add_plot_axis(dpg.mvXAxis, label="x")  # REQUIRED: create x axis
+                dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="y_axis_2")  # REQUIRED: create y axis
                 # Drawing stuff (empty for now):
                 dpg.add_stair_series([], [], label="Emepric Fucntion", parent="y_axis_2", tag="series_stair")
                 dpg.add_line_series([], [], label="Polygon Something", parent="y_axis_2", tag="series_line")
 
         # RIGHT SIDE OF THE WINDOW
         with dpg.group():
-            with dpg.group(): # DISTRIBUTION CONTROLS
+            with dpg.group():  # DISTRIBUTION CONTROLS
                 dpg.add_text('distribution controls: ')
-                dpg.add_combo(['NORMAL', 'UNIFORM', 'TRIANGULAR'], label="distribution", tag="combo_dist", width=ELEM_WIDTH, default_value="NORMAL", callback=update_ui)
+                dpg.add_combo(['NORMAL', 'UNIFORM', 'TRIANGULAR'], label="distribution", tag="combo_dist",
+                              width=ELEM_WIDTH, default_value="NORMAL", callback=update_ui)
                 with dpg.group(tag="dist_controls"):
                     with dpg.group(tag="controls_normal"):
                         dpg.add_input_float(width=ELEM_WIDTH, label="mu", tag="normal_mu", default_value=0)
@@ -133,20 +143,25 @@ with dpg.window(label="plot test", tag="Primary Window", height=650, width=1250)
 
                 dpg.add_spacer(height=10)
 
-                with dpg.group(tag="selection_controls"): # SELECTION CONTROLS
+                with dpg.group(tag="selection_controls"):  # SELECTION CONTROLS
                     dpg.add_text('selection controls: ')
-                    dpg.add_input_int(tag="selection_size", label="selection size", width=ELEM_WIDTH, default_value=100, step=50, min_clamped=True, min_value=10)
-                    dpg.add_input_int(tag="histogram_bars", label="histogram bars", width=ELEM_WIDTH, default_value=20, min_clamped=True,
+                    dpg.add_input_int(tag="selection_size", label="selection size", width=ELEM_WIDTH, default_value=100,
+                                      step=50, min_clamped=True, min_value=10)
+                    dpg.add_input_int(tag="histogram_bars", label="histogram bars", width=ELEM_WIDTH, default_value=20,
+                                      min_clamped=True,
                                       min_value=3, callback=upd.update_hist_series_config)
-                    dpg.add_combo(['GAUSS', 'ECHPOCHMAK', 'KOSHI', 'EMPTY', 'LOG'], label="kde core", tag="combo_kde", width=ELEM_WIDTH,
+                    dpg.add_combo(['GAUSS', 'ECHPOCHMAK', 'KOSHI', 'EMPTY', 'LOG'], label="kde core", tag="combo_kde",
+                                  width=ELEM_WIDTH,
                                   default_value='GAUSS', callback=upd.update_kde)
-                    dpg.add_input_float(label="kde window width", tag="kde_width", default_value=0.2, width=ELEM_WIDTH, step=0.05,
+                    dpg.add_input_float(label="kde window width", tag="kde_width", default_value=0.2, width=ELEM_WIDTH,
+                                        step=0.05,
                                         min_clamped=True, min_value=0.01, callback=upd.update_kde)
 
-            with dpg.group(): # DRAW BUTTON
-                dpg.add_button(label="draw", tag="btn_draw", small=False, callback=upd.update, height=50, width=ELEM_WIDTH)
+            with dpg.group():  # DRAW BUTTON
+                dpg.add_button(label="draw", tag="btn_draw", small=False, callback=upd.update, height=50,
+                               width=ELEM_WIDTH)
 
-            with dpg.group(): # RESULTS GROUP
+            with dpg.group():  # RESULTS GROUP
                 with dpg.group(horizontal=True):
                     dpg.add_text(default_value="average: ")
                     dpg.add_text(tag="average", default_value='-')
@@ -160,7 +175,6 @@ with dpg.window(label="plot test", tag="Primary Window", height=650, width=1250)
 with dpg.theme() as global_theme:
     with dpg.theme_component(dpg.mvAll):
         dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 2, category=dpg.mvThemeCat_Plots)
-
 
 dpg.bind_item_theme('plots', global_theme)
 
