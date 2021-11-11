@@ -30,7 +30,6 @@ class Root():
     def draw_scatter(self): pass
         #dpg.set_value('series_scatter', value=[self.values_input.get_values(), self.values_output.get_values()])
 
-
     def estimate_coefficients(self):
         average_input = self.values_input.get_average()
         average_output = self.values_output.get_average()
@@ -79,12 +78,12 @@ class Root():
         self.estimate_coefficients()
 
 
-
-
-
-
+# TEMP TEST
 def print_val(sender):
     print(dpg.get_value(sender))
+
+
+
 
 with dpg.window(label="plot test", tag="Primary Window", height=650, width=1250):
     ELEM_WIDTH = 200  # width of controls like buttons, inputs, etc.
