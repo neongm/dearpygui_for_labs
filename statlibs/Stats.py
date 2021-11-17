@@ -142,3 +142,33 @@ class selection():
     def max(self): return max(self.values)
 
     def min(self): return min(self.values)
+
+    def linear_regression_simple(self, values_output, values_input=None):
+        """ Simple linear regression, uses values of the object itself as input if
+        none input_values is provided.
+
+        :param (selection) values_output: Y values of the selection - result of f(x) on corresponding X values
+        :param (selection) values_input: X values of the selection corresponding to results in Y values
+        :return: tuple(float: coefficient_0, float: coefficient_1)
+        """
+
+        # checking if custom input array is used,
+        # otherwise using this object's values as input
+        if values_input is None: values_input = self  # = self? wtf?
+
+        # checking if they have different sizes
+        if len(values_output) != len(values_input):
+            raise ValueError(f'Arrays have different length: \n{len(values_input)} for input and {len(values_output)} for output')
+        else:
+            average_input = values_input.get_average()
+            average_output = values_output.get_average()
+
+            cross_deviation = sum(values_input * values_output) - values_input.size() * average_input * average_output
+            input_deviation = sum(values_input * values_input) - values_input.size() * average_input * average_input
+
+            coefficient_1 = cross_deviation / input_deviation
+            coefficient_0 = average_output - coefficient_1 * average_input
+
+        return (coefficient_0, coefficient_1)
+
+
