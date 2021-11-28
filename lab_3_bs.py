@@ -1,6 +1,7 @@
 import dearpygui.dearpygui as dpg
-
+import random
 from statlibs import Distributions, Stats, KDECores
+from statlibs.Utils import Utils
 
 dpg.create_context()
 dpg.create_viewport()
@@ -14,9 +15,18 @@ class Root():
         self.values_output = Stats.selection(values=[])
         self.dragpoints = None
 
-    def generate_seleciton(self, selection_size: int = 10):
+    def degenerate_seleciton(self, selection_size: int = 10):
         self.values_input = Stats.selection(size=10, distrib=Distributions.Uniform(-1, 1))
         self.values_output = Stats.selection(size=10, distrib=Distributions.Uniform(-1, 1)) # wtf
+
+        for i in range(self.values_input.size()):
+            self.add_dragpoint(x = self.values_input[i], y = self.values_output[i])
+
+        self.estimate_coefficients()
+
+    def generate_seleciton(self, selection_size: int = 10):
+        self.values_input = Stats.selection(values=[i+random.normalvariate(0, 1) for i in range(10)])
+        self.values_output = Stats.selection(size=10, distrib=Distributions.Uniform(-1, 1))+self.values_input
 
         for i in range(self.values_input.size()):
             self.add_dragpoint(x = self.values_input[i], y = self.values_output[i])
@@ -27,18 +37,17 @@ class Root():
         self.values_input.append(x)
         self.values_output.append(y)
 
-    def draw_scatter(self): pass
-        #dpg.set_value('series_scatter', value=[self.values_input.get_values(), self.values_output.get_values()])
-
     def estimate_coefficients(self):
-        average_input = self.values_input.get_average()
-        average_output = self.values_output.get_average()
+        # average_input = self.values_input.get_average()
+        # average_output = self.values_output.get_average()
+        #
+        # cross_deviation = sum(self.values_input * self.values_output) - self.values_input.size() * average_input * average_output
+        # input_deviation = sum(self.values_input * self.values_input) - self.values_input.size() * average_input * average_input
+        #
+        # self.coefficient_1 = cross_deviation / input_deviation
+        # self.coefficient_0 = average_output - self.coefficient_1 * average_input
 
-        cross_deviation = sum(self.values_input * self.values_output) - self.values_input.size() * average_input * average_output
-        input_deviation = sum(self.values_input * self.values_input) - self.values_input.size() * average_input * average_input
-
-        self.coefficient_1 = cross_deviation / input_deviation
-        self.coefficient_0 = average_output - self.coefficient_1 * average_input
+        self.coefficient_0, self.coefficient_1 = Utils.linear_regression_simple(self.values_input, self.values_output)
 
         dpg.set_value(item='text_b0', value=f'{round(self.coefficient_0, 4)}')
         dpg.set_value(item='text_b1', value=f'{round(self.coefficient_1, 4)}')
@@ -58,7 +67,6 @@ class Root():
         self.add_dragpoint(x=0, y=0)
 
     def add_dragpoint(self, x: float = 0, y: float = 0):
-        print(x, y)
         dp = dpg.add_drag_point(parent="plot_hist", default_value=[x, y])
         dpg.set_item_callback(dp, self.draw_dragpoints)
 
@@ -74,7 +82,7 @@ class Root():
     def draw_dragpoints(self):
         self.values_input = Stats.selection(values=[dpg.get_value(dragpoint_tag)[0] for dragpoint_tag in self.dragpoints])
         self.values_output = Stats.selection(values=[dpg.get_value(dragpoint_tag)[1] for dragpoint_tag in self.dragpoints])
-        self.draw_scatter()
+
         self.estimate_coefficients()
 
 

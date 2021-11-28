@@ -152,11 +152,9 @@ class selection():
         :return: tuple(float: coefficient_0, float: coefficient_1)
         """
 
-        # checking if custom input array is used,
-        # otherwise using this object's values as input
         if values_input is None: values_input = self  # = self? wtf?
 
-        # checking if they have different sizes
+        # checking if objects have different sizes
         if len(values_output) != len(values_input):
             raise ValueError(f'Arrays have different length: \n{len(values_input)} for input and {len(values_output)} for output')
         else:
