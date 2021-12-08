@@ -1,5 +1,4 @@
 import numpy as np
-import sympy
 
 from . import Stats
 from . import Function
@@ -35,6 +34,7 @@ class Utils():
     @staticmethod
     def sum_deviation_of_squares(values_x: Stats.selection, values_y: Stats.selection, function: Function.Function):
         return sum([ (function(values_x[i]) - values_y[i])**2 for i in range(values_x.size()) ])
+
 
 
     @staticmethod

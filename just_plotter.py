@@ -1,8 +1,8 @@
 import dearpygui.dearpygui as dpg
 import random
-from statlibs import Distributions, Stats, KDECores
+from statlibs import Distributions, Stats, KDECores, HellSolver
 from statlibs.Utils import Utils
-
+import math
 dpg.create_context()
 dpg.create_viewport()
 dpg.setup_dearpygui()
@@ -38,10 +38,13 @@ class Root():
         self.values_output.append(y)
 
     def estimate_coefficients(self):
-        self.coefficient_0, self.coefficient_1 = Utils.linear_regression_simple(self.values_input, self.values_output)
+        Xm = [[self.values_input[i]] for i in range(self.values_input.size())]
+        Ym = self.values_output.get_values()
+        self.coefficient_0, self.coefficient_1 = HellSolver.LS(Xm, Ym).solve_myown()
+        coefficient_0, coefficient_1 = Utils.linear_regression_simple(self.values_input, self.values_output)
 
-        dpg.set_value(item='text_b0', value=f'{round(self.coefficient_0, 4)}')
-        dpg.set_value(item='text_b1', value=f'{round(self.coefficient_1, 4)}')
+        dpg.set_value(item='text_b0', value=f'{round(self.coefficient_0, 4)}, real = {round(coefficient_0, 4)}')
+        dpg.set_value(item='text_b1', value=f'{round(self.coefficient_1, 4)}, real = {round(coefficient_1, 4)}')
         dpg.set_value(item='text_formula', value=f'f(x) = {round(self.coefficient_0, 4)} + {round(self.coefficient_1, 4)} * x')
 
         self.draw_regression_line()  # LINEAR ONLY - BS
@@ -51,8 +54,10 @@ class Root():
         min_x = self.values_input.min()
         min_y = self.coefficient_0 + self.coefficient_1 * min_x
         max_y = self.coefficient_0 + self.coefficient_1 * max_x
-
+        arr_x = [min_x+((max_x-min_x)/100)*x for x in range(100)]
+        arr_y = [self.coefficient_0 + math.sin(x) for x in arr_x]
         dpg.set_value('series_regression_line', [[min_x, max_x], [min_y, max_y]])
+        #dpg.set_value('series_regression_line', [arr_x, arr_y])
 
     def add_dragpoint_fuck(self):
         self.add_dragpoint(x=0, y=0)

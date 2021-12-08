@@ -2,18 +2,20 @@ import dearpygui.dearpygui as dpg
 import random
 from statlibs import Distributions, Stats, KDECores
 from statlibs.Utils import Utils
+from statlibs.Function import Function
+
+import math
 
 dpg.create_context()
 dpg.create_viewport()
 dpg.setup_dearpygui()
 
-
-# https://www.geeksforgeeks.org/linear-regression-python-implementation/ - i think i should save it here
 class Root():
     def __init__(self):
         self.values_input = Stats.selection(values=[])
         self.values_output = Stats.selection(values=[])
         self.dragpoints = None
+        self.current_function = Function(lambda x: math.sin(x))
 
     def degenerate_seleciton(self, selection_size: int = 10):
         self.values_input = Stats.selection(size=10, distrib=Distributions.Uniform(-1, 1))
@@ -46,13 +48,23 @@ class Root():
 
         self.draw_regression_line()  # LINEAR ONLY - BS
 
-    def draw_regression_line(self, x=None): # LINEAR ONLY - BS
+    def draw_regression_line(self):
         max_x = self.values_input.max()
         min_x = self.values_input.min()
-        min_y = self.coefficient_0 + self.coefficient_1 * min_x
-        max_y = self.coefficient_0 + self.coefficient_1 * max_x
+        arr_x = [x/100 for x in range(min_x, max_x*100)] # idea with 100-coefficiet is stupid, but should work
+        arr_y = [self.current_function(x) for x in arr_x]
+        
+        dpg.set_value('series_regression_line', [[arr_x], [arr_y]])
 
-        dpg.set_value('series_regression_line', [[min_x, max_x], [min_y, max_y]])
+    #   def draw_regression_line(self, x=None): # LINEAR ONLY - BS
+    #    max_x = self.values_input.max()
+    #    min_x = self.values_input.min()
+    #    min_y = self.coefficient_0 + self.coefficient_1 * min_x
+    #    max_y = self.coefficient_0 + self.coefficient_1 * max_x
+    #
+    #    dpg.set_value('series_regression_line', [[min_x, max_x], [min_y, max_y]])
+
+
 
     def add_dragpoint_fuck(self):
         self.add_dragpoint(x=0, y=0)
@@ -60,7 +72,6 @@ class Root():
     def add_dragpoint(self, x: float = 0, y: float = 0):
         dp = dpg.add_drag_point(parent="plot_hist", default_value=[x, y])
         dpg.set_item_callback(dp, self.draw_dragpoints)
-
         if self.dragpoints is None: self.dragpoints = [dp]
         else: self.dragpoints.append(dp)
 
@@ -69,19 +80,11 @@ class Root():
             dpg.delete_item(item=point)
         self.dragpoints = []
 
-
     def draw_dragpoints(self):
         self.values_input = Stats.selection(values=[dpg.get_value(dragpoint_tag)[0] for dragpoint_tag in self.dragpoints])
         self.values_output = Stats.selection(values=[dpg.get_value(dragpoint_tag)[1] for dragpoint_tag in self.dragpoints])
 
-        self.estimate_coefficients()
-
-
-# TEMP TEST
-def print_val(sender):
-    print(dpg.get_value(sender))
-
-
+        # self.estimate_coefficients()
 
 
 with dpg.window(label="plot test", tag="Primary Window", height=650, width=1250):
@@ -119,6 +122,7 @@ with dpg.window(label="plot test", tag="Primary Window", height=650, width=1250)
                 with dpg.group(horizontal=True):
                     dpg.add_text(default_value="formula: ")
                     dpg.add_text(tag="text_formula", default_value='f(x) = -')
+
 
 
 dpg.show_viewport(maximized=True)

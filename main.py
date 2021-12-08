@@ -6,6 +6,7 @@ dpg.create_context()
 dpg.create_viewport()
 dpg.setup_dearpygui()
 dpg.show_debug()
+dpg.show_implot_demo()
 dpg.show_style_editor()
 
 
